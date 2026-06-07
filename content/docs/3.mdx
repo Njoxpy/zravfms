@@ -1,0 +1,50 @@
+---
+title: Response Codes and Reporting Requirements
+description: Standard VFMS API response codes and checkout report requirements.
+---
+
+# Response Codes and Reporting Requirements
+
+## Standard API Responses
+
+These response codes indicate the standard result of a VFMS hotel API request.
+
+| HTTP Status | Meaning | Description |
+| --- | --- | --- |
+| `200` | OK | The request was successful. |
+| `201` | Created | The resource was created successfully. |
+| `400` | Bad Request | The request payload is invalid or missing required fields. |
+| `401` | Unauthorized | Authentication failed, token is missing or invalid. |
+| `403` | Forbidden | Access denied or the request is rejected by VFMS. |
+| `404` | Not Found | The requested resource or data was not found. |
+| `500` | Internal Server Error | The VFMS server encountered an unexpected error. |
+
+## Checkout and Invoice Requirements
+
+All invoices and checkout reports must include the VFMS QR code or the receipt lookup URL.
+
+- Example receipt lookup URL: `http://102.223.7.131:4242/checkout-form/receiptNumber`
+
+### Required invoice details
+
+A checkout or invoice printout should include:
+
+- Receipt number / response number
+- Business unit name and registration information
+- Room details and stay duration
+- Tax totals and subtotals
+- Guest identity details
+- Service descriptions and totals
+
+### Sample test credentials
+
+These sample integration credentials are for testing only.
+
+- Accommodation business unit
+  - Integration ID: `831551423`
+  - Integration Token: `5a3c92e7-37d4-407f-958a-3bb0eae30156`
+- Restaurant / Other services
+  - Integration ID: `121552171`
+  - Integration Token: `5b250888-7c20-4540-a9a5-d5db81bcd840`
+
+> Do not use test credentials in production environments.

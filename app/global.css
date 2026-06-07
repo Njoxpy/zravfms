@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 @import 'tailwindcss';
 @import 'fumadocs-ui/css/neutral.css';
 @import 'fumadocs-ui/css/preset.css';
@@ -9,4 +10,51 @@ html {
 html > body[data-scroll-locked] {
   margin-right: 0px !important;
   --removed-body-scroll-bar-size: 0px !important;
+}
+
+@theme {
+  --font-sans: 'Roboto', sans-serif;
+
+  /* Light mode */
+  --color-fd-background: hsl(0, 0%, 95%);
+  --color-fd-foreground: hsl(0, 0%, 13%);
+  --color-fd-muted: hsl(0, 0%, 91%);
+  --color-fd-muted-foreground: hsl(0, 0%, 46%);
+  --color-fd-popover: hsl(0, 0%, 100%);
+  --color-fd-popover-foreground: hsl(0, 0%, 13%);
+  --color-fd-card: hsl(0, 0%, 100%);
+  --color-fd-card-foreground: hsl(0, 0%, 13%);
+  --color-fd-border: hsla(0, 0%, 0%, 12%);
+  --color-fd-primary: hsl(51, 100%, 46%);
+  --color-fd-primary-foreground: hsl(0, 0%, 0%);
+  --color-fd-secondary: hsl(204, 100%, 38%);
+  --color-fd-secondary-foreground: hsl(0, 0%, 100%);
+  --color-fd-accent: hsl(204, 100%, 38%);
+  --color-fd-accent-foreground: hsl(0, 0%, 100%);
+  --color-fd-ring: hsl(51, 100%, 46%);
+}
+
+/* Dark mode — plain CSS vars, NOT inside @theme */
+.dark {
+  --color-fd-background: hsl(0, 0%, 10%);
+  --color-fd-foreground: hsl(0, 0%, 92%);
+  --color-fd-muted: hsl(0, 0%, 16%);
+  --color-fd-muted-foreground: hsla(0, 0%, 70%, 0.8);
+  --color-fd-popover: hsl(0, 0%, 13%);
+  --color-fd-popover-foreground: hsl(0, 0%, 87%);
+  --color-fd-card: hsl(0, 0%, 13%);
+  --color-fd-card-foreground: hsl(0, 0%, 95%);
+  --color-fd-border: hsla(0, 0%, 100%, 10%);
+  --color-fd-primary: hsl(51, 100%, 46%);
+  --color-fd-primary-foreground: hsl(0, 0%, 0%);
+  --color-fd-secondary: hsl(204, 100%, 50%);
+  --color-fd-secondary-foreground: hsl(0, 0%, 0%);
+  --color-fd-accent: hsl(204, 100%, 50%);
+  --color-fd-accent-foreground: hsl(0, 0%, 0%);
+  --color-fd-ring: hsl(51, 100%, 46%);
+}
+
+body {
+  font-family: var(--font-sans);
+  letter-spacing: 0.0178571429em;
 }

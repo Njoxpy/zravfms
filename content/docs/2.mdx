@@ -1,0 +1,891 @@
+---
+title: API Endpoints
+description: VFMS hotel API endpoint reference and example requests.
+---
+
+# API Endpoints
+
+The VFMS hotel integration uses HTTP `POST` for all endpoints.
+Each request must include the required VFMS headers described in the Introduction page.
+
+## Core Hotel Endpoints
+
+- `POST http://102.223.7.131:6060/vfms/api/accommodation/`
+- `POST http://102.223.7.131:6060/vfms/api/change/room/`
+- `POST http://102.223.7.131:6060/vfms/api/changeRoomPrice/`
+
+### Accommodation Endpoint
+
+Use this endpoint for guest check-in and accommodation registration.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/accommodation/`
+- **Header:** `vfms-request-type: ACCOMMODATION_REQUEST`
+
+#### Request Schema
+
+| Parameter               | Type    | Description |
+| ----------------------- | ------- | ----------- |
+| `accommodationDiscount` | Double  | Discount amount applied to the accommodation price. |
+| `accommodationPrice`    | Double  | Tax-inclusive accommodation amount. |
+| `checkInDate`           | String  | Check-in date/time in ISO 8601 format. |
+| `currency`              | String  | `USD`, `TZS`, `EUR`. |
+| `paymentPackage`        | String  | Example: `AI`. |
+| `referenceNumber`       | String  | Unique transaction identifier. |
+| `roomId`                | Integer | Room identification number. |
+| `roomName`              | String  | Room name or number. |
+| `accommodationSource`   | String  | `DIRECT` or `TOUR OPERATOR`. |
+| `tourRegNo`             | String  | Required when `accommodationSource` is `TOUR OPERATOR`. |
+| `costOptions`           | String  | Required when `accommodationSource` is `TOUR OPERATOR`. |
+| `guest`                 | Array   | Guest details. |
+| `guest[].documentName`  | String  | Guest document type. |
+| `guest[].documentNo`    | String  | Guest document number. |
+| `guest[].fullName`      | String  | Guest full name. |
+| `guest[].country`       | String  | Guest country of origin. |
+| `guest[].arrivalDate`   | String  | Guest arrival date. |
+
+#### Direct Accommodation Example
+
+```json
+{
+  "paymentPackage": "AI",
+  "checkInDate": "2026-03-30T11:44:40.090Z",
+  "guest": [
+    {
+      "documentName": "PASSPORT",
+      "documentNo": "KAE001",
+      "arrivalDate": "2026-03-30",
+      "country": "KENYA",
+      "fullName": "ASMA HASSAN"
+    }
+  ],
+  "roomId": 11,
+  "roomName": "BOSS",
+  "accommodationSource": "DIRECT",
+  "accommodationPrice": 100,
+  "accommodationDiscount": 0,
+  "referenceNumber": "RF0021",
+  "currency": "USD"
+}
+```
+
+#### Response Example
+
+```json
+{
+  "paymentPackage": "AI",
+  "guest": [
+    {
+      "documentName": "PASSPORT",
+      "documentNo": "KAE001",
+      "country": "KENYA",
+      "fullName": "ASMA HASSAN"
+    }
+  ],
+  "roomId": 1009,
+  "roomName": "BOSS",
+  "accommodationPrice": 100.0,
+  "accommodationDiscount": 0.0,
+  "referenceNumber": "RF0021",
+  "responseNumber": "8208592455940RF0021-5940",
+  "businessUnitId": 5940,
+  "recordedBy": 7804,
+  "recordedAt": "2026-04-08T11:59:24.637+03:00",
+  "checkInDate": "2026-03-30T11:44:40.090Z",
+  "accommodationSource": "DIRECT",
+  "tourRegNo": null,
+  "costOptions": null,
+  "tourName": null,
+  "currency": "USD"
+}
+```
+
+#### Tour Operator Accommodation Example
+
+```json
+{
+  "paymentPackage": "AI",
+  "checkInDate": "2026-03-30T11:44:40.090Z",
+  "guest": [
+    {
+      "documentName": "PASSPORT",
+      "documentNo": "KAE002",
+      "arrivalDate": "2026-03-30",
+      "country": "KENYA",
+      "fullName": "ASMA HASSAN"
+    }
+  ],
+  "roomId": 3300,
+  "roomName": "BOSS2",
+  "accommodationSource": "TOUR OPERATOR",
+  "accommodationPrice": 200,
+  "accommodationDiscount": 0,
+  "referenceNumber": "RF0032",
+  "tourRegNo": "Z052300149-20",
+  "costOptions": "765",
+  "currency": "USD"
+}
+```
+
+#### Response Example
+
+```json
+{
+  "paymentPackage": "AI",
+  "guest": [
+    {
+      "documentName": "PASSPORT",
+      "documentNo": "KAE002",
+      "country": "KENYA",
+      "fullName": "ASMA HASSAN"
+    }
+  ],
+  "roomId": 3300,
+  "roomName": "BOSS2",
+  "accommodationPrice": 200.0,
+  "accommodationDiscount": 0.0,
+  "referenceNumber": "RF0032",
+  "responseNumber": "5109171865940RF0032-5940",
+  "businessUnitId": 5940,
+  "recordedBy": 7804,
+  "recordedAt": "2026-04-08T12:17:20.539+03:00",
+  "checkInDate": "2026-03-30T11:44:40.090Z",
+  "accommodationSource": "TOUR OPERATOR",
+  "tourRegNo": "Z052300149-20",
+  "costOptions": "765",
+  "tourName": "ZAN TOURS LTD",
+  "currency": "USD"
+}
+```
+
+## Change Room Endpoint
+
+Use this endpoint when a guest is moved to a different room during the same stay.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/change/room/`
+- **Header:** `vfms-request-type: ACCOMMODATION_CHANGE_ROOM`
+
+#### Request Schema
+
+| Parameter               | Type    | Description |
+| ----------------------- | ------- | ----------- |
+| `accommodationDiscount` | Double  | Discount amount for the room change. |
+| `accommodationPrice`    | Double  | New room price, tax-inclusive. |
+| `currency`              | String  | `USD`, `TZS`, `EUR`. |
+| `documentNumber`        | String  | Checked-in guest document number. |
+| `referenceNumber`       | String  | Unique transaction identifier. |
+| `roomName`              | String  | New room name or number. |
+| `roomId`                | Integer | New room identifier. |
+
+#### Example Request
+
+```json
+{
+  "roomName": "newBOSS",
+  "roomId": 1088,
+  "documentNumber": "KAE001",
+  "referenceNumber": "TF006",
+  "currency": "USD",
+  "accommodationPrice": 300,
+  "accommodationDiscount": 0
+}
+```
+
+#### Example Response
+
+```json
+{
+  "businessUnitId": 5940,
+  "roomId": 1088,
+  "roomName": "newBOSS",
+  "documentNumber": "KAE001",
+  "referenceNumber": "TF006-5940",
+  "responseNumber": "7411281315940TF006-5940",
+  "recordedBy": 7804,
+  "recordedAt": "2026-04-08T14:28:13.477+03:00",
+  "currency": "USD",
+  "accommodationPrice": 300.0,
+  "accommodationDiscount": 0.0
+}
+```
+
+## Change Room Price Endpoint
+
+Use this endpoint when only the room rate changes and the guest remains in the same room.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/changeRoomPrice/`
+- **Header:** `vfms-request-type: CHANGEROOM_PRICE`
+
+#### Request Schema
+
+| Parameter               | Type   | Description |
+| ----------------------- | ------ | ----------- |
+| `Rooms`                 | Array  | Array of room pricing updates. |
+| `Rooms[].hotelRoomRoom` | Long   | Room asset identifier. |
+| `Rooms[].roomPrice`     | Double | Updated room price. |
+
+#### Example Request
+
+```json
+{
+  "Rooms": [
+    {
+      "roomPrice": 500,
+      "hotelRoomRoom": 3300
+    }
+  ]
+}
+```
+
+#### Example Response
+
+```json
+[
+  {
+    "roomPrice": 500.0,
+    "hotelRoomRoom": 33005940
+  }
+]
+```
+
+---
+
+### 2.4 Currency Exchange Rate Endpoints
+
+This endpoint returns current currency exchange rates used by VFMS.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/currencyExchangeRate/`
+- **Header:** `vfms-request-type: CURRENCY_EXCHANGE`
+
+#### Response Schema
+
+| Parameter     | Type   | Description             |
+| ------------- | ------ | ----------------------- |
+| `rate_id`     | String | Rate identifier.        |
+| `rateUSD`     | Double | USD to TZS rate.        |
+| `rateEURO`    | Double | EUR to TZS rate.        |
+| `rateUSDEURO` | Double | USD to EUR cross-rate.  |
+
+#### Example Response
+
+```json
+{
+  "rate_id": null,
+  "rateUSD": 3205.0,
+  "rateEURO": 2721.23,
+  "rateUSDEURO": 1.17
+}
+```
+
+---
+
+### 2.5 Accommodation Report Endpoint
+
+This endpoint returns guest stay data for a date range.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/accommodationReport/`
+- **Header:** `vfms-request-type: ACCOMMODATION_REPORT`
+
+#### Request Schema
+
+| Parameter   | Type        | Description        |
+| ----------- | ----------- | ------------------ |
+| `startDate` | Date/String | Report start date. |
+| `endDate`   | Date/String | Report end date.   |
+
+#### Example Request
+
+```json
+{
+  "startDate": "2026-04-01",
+  "endDate": "2026-04-08"
+}
+```
+
+#### Example Response
+
+```json
+[
+  {
+    "id": 65871,
+    "paymentType": "AI",
+    "numberOfGuest": 1,
+    "source": "DIRECT",
+    "isClosed": false,
+    "isCanceled": false,
+    "openedDate": "2026-04-03T03:05:00.000+03:00",
+    "closedDate": null,
+    "recordedAt": "2026-04-03T18:05:01.449+03:00",
+    "guest": [
+      {
+        "id": 88078,
+        "documentName": "PASSPORT",
+        "documentNo": "YC9419045",
+        "days": 1,
+        "arrivalDate": null,
+        "recordedAt": "2026-04-03T18:05:01.449+03:00",
+        "service": [],
+        "country": "IT",
+        "fullName": "SPINELLI GIULIANO",
+        "checkIn": "2026-04-03T03:05:00.000+03:00",
+        "isChackedOut": false,
+        "checkOut": null
+      }
+    ],
+    "room": [
+      {
+        "id": 89767,
+        "days": 1,
+        "taxAmount": 275.85,
+        "recordedAt": "2026-04-03T18:05:01.449+03:00",
+        "room": 9085940,
+        "name": "FAM. matr+2 superior v. giardino",
+        "accomodationDiscount": 0.0,
+        "dateIn": "2026-04-03T03:05:00.000+03:00",
+        "accomodationPrice": 2114.88,
+        "isOut": true
+      }
+    ]
+  }
+]
+```
+
+---
+
+### 2.6 Guest Accommodation Endpoints
+
+This endpoint is used to register additional guests during an existing stay.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/guest/accommodation/`
+- **Header:** `vfms-request-type: ACCOMMODATION_ADD_GUEST`
+
+#### Request Schema
+
+| Parameter            | Type   | Description                     |
+| -------------------- | ------ | ------------------------------- |
+| `arrivalDate`        | String | New guest arrival date.         |
+| `country`            | String | Guest country.                  |
+| `documentName`       | String | Guest document type.            |
+| `documentNo`         | String | Guest document ID number.       |
+| `firstGuestDocument` | String | Existing guest document number. |
+| `fullName`           | String | New guest full name.            |
+| `referenceNumber`    | String | Unique transaction number.      |
+
+#### Example Request
+
+```json
+{
+  "documentNumber": "KAE012",
+  "service": [
+    {
+      "itemName": "WATER",
+      "price": 10,
+      "quantity": 2,
+      "discount": 0
+    }
+  ],
+  "referenceNumber": "RS006",
+  "type": "CR",
+  "currency": "USD"
+}
+```
+
+#### Example Response
+
+```json
+{
+  "documentNumber": "KAE012",
+  "service": [
+    {
+      "itemName": "WATER",
+      "price": 10.0,
+      "quantity": 2.0,
+      "discount": 0.0
+    }
+  ],
+  "businessUnitId": 5940,
+  "referenceNumber": "RS006-5940",
+  "responseNumber": "7212274645940RS006-5940",
+  "recordedBy": 7804,
+  "recordedAt": "2026-04-08T15:27:46.657+03:00",
+  "tax": 2.6086956521739135,
+  "taxExclusive": 17.391304347826086,
+  "salesAmount": 20.0,
+  "receiptNumber": "XHE224888",
+  "type": "CR",
+  "currency": "USD"
+}
+```
+
+---
+
+### 2.7 Change Profile Endpoints
+
+This endpoint updates guest profile details when the original information was entered incorrectly.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/guest/changeProfile/`
+- **Header:** `vfms-request-type: GUEST_PROFILE`
+
+#### Request Schema
+
+| Parameter         | Type   | Description                     |
+| ----------------- | ------ | ------------------------------- |
+| `oldDocumentNo`   | String | Previous guest document number. |
+| `newDocumentNo`   | String | Updated guest document number.  |
+| `fullName`        | String | Updated guest full name.        |
+| `documentName`    | String | Updated document type.          |
+| `country`         | String | Updated guest country.          |
+| `referenceNumber` | String | Unique transaction number.      |
+
+#### Example Response
+
+```json
+{
+  "oldDocumentNo": "KAE012",
+  "newDocumentNo": "KAE032",
+  "fullName": "ASMA HASSAN",
+  "documentName": "PASSPORT",
+  "country": "INDIA",
+  "referenceNumber": "FR0072-5940",
+  "responseNumber": "7112443165940FR0072-5940",
+  "checkInDate": "2026-04-08T15:13:14.318+03:00"
+}
+```
+
+---
+
+### 2.8 Guest Checkout Endpoints
+
+This endpoint finalizes checkout and generates the checkout report.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/guest/checkout/`
+- **Header:** `vfms-request-type: ACCOMMODATION_CHECK_OUT`
+
+#### Request Schema
+
+| Parameter                             | Type   | Description                     |
+| ------------------------------------- | ------ | ------------------------------- |
+| `currency`                            | Enum   | `USD`, `TZS`, `EUR`.           |
+| `documentNumberList`                  | Array  | List of guest document numbers. |
+| `documentNumberList[].documentNumber` | String | Guest document number.          |
+
+#### Example Request
+
+```json
+{
+  "documentNumberList": [
+    {
+      "documentNumber": "KAE001"
+    }
+  ],
+  "currency": "USD"
+}
+```
+
+#### Example Response (Direct)
+
+```json
+[
+  {
+    "room": {
+      "room": [
+        {
+          "roomName": "BOSS",
+          "days": 9.0,
+          "amount": 900.0,
+          "tax": 117.39,
+          "accommodationPrice": 100.0,
+          "accommodationDiscount": 0.0,
+          "dateIn": "2026-03-30T14:44:00.000+03:00"
+        }
+      ],
+      "subtotal": {
+        "totalAmount": 900.0,
+        "totalTax": 117.39
+      }
+    },
+    "guest": {
+      "documentName": "PASSPORT",
+      "documentNo": "KAE001",
+      "country": "KENYA",
+      "fullName": "ASMA HASSAN"
+    },
+    "service": {
+      "service": [],
+      "subTotal": {
+        "totalAmount": 0.0,
+        "totalTax": 0.0
+      }
+    },
+    "accommodation": {
+      "paymentType": "AI",
+      "openDate": "2026-03-30T14:44:00.000+03:00",
+      "closeDate": "2026-04-09T11:07:40.806+03:00",
+      "currency": "USD"
+    },
+    "accommoDetail": {
+      "accommodationSource": "DIRECT",
+      "tourRegNo": null,
+      "costOptions": null,
+      "tourName": null
+    },
+    "reportNumber": "XHE224890",
+    "total": {
+      "totalAmount": 900.0,
+      "totalTax": 117.39
+    },
+    "days": 9.0,
+    "totalInfrastructure": 45.0,
+    "businessName": "RASHID HABIB ALI",
+    "tinNumber": "N/A",
+    "vrnNumber": "N/A",
+    "street": "MBUYU MNENE",
+    "znumber": "Z025608121"
+  }
+]
+```
+
+---
+
+### 2.9 Advance Payment Booking Endpoint
+
+This endpoint records advance bookings for future stays.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/api/reservation/booking/`
+- **Header:** `vfms-request-type: RESERVATION_BOOKING`
+
+#### Request Schema
+
+| Parameter                  | Type        | Description                               |
+| -------------------------- | ----------- | ----------------------------------------- |
+| `bookingCompany`           | String      | Tour operator or booking company name.    |
+| `email`                    | String      | Company email address.                    |
+| `phoneNumber`              | String      | Company phone number.                     |
+| `amountToBePaid`           | Double      | Total expected payment amount.            |
+| `noOfGuest`                | Integer     | Number of guests.                         |
+| `currency`                 | Enum        | `USD`, `TZS`, `EUR`.                     |
+| `startDate`                | Date/String | Booking start date.                       |
+| `endDate`                  | Date/String | Booking end date.                         |
+| `rooms`                    | Array       | Booked room lines.                        |
+| `rooms[].roomId`           | String      | Room identifier.                          |
+| `rooms[].roomPrice`        | Double      | Room price.                               |
+| `rooms[].noOfGuestPerRoom` | Integer     | Guest count per room.                     |
+| `regNumber`                | String      | Tour operator tax number or registration. |
+| `customerType`             | Integer     | Always `2` for B2B customers.             |
+| `salesCustomer`            | String      | Customer name if not ZRA registered.      |
+| `referenceNumber`          | String      | Unique transaction reference.             |
+| `isIncludeInfrastructure`  | Boolean     | Include infrastructure item.              |
+| `isIncludeAccommodation`   | Boolean     | Include accommodation item.               |
+| `isIncludeOtherService`    | Boolean     | Include other service item.               |
+| `isZraRegistered`          | Boolean     | Whether TO is ZRA registered.             |
+
+#### Example Request
+
+```json
+{
+  "bookingCompany": "ABC company",
+  "email": "abc@gmail.com",
+  "phoneNumber": "0716776655",
+  "amountToBePaid": 5000,
+  "noOfGuest": 1,
+  "currency": "USD",
+  "startDate": "2026-05-05T08:30:41.481Z",
+  "endDate": "2026-05-09T08:30:41.481Z",
+  "rooms": [
+    {
+      "roomId": 99,
+      "roomPrice": 10,
+      "noOfGuestPerRoom": 1
+    }
+  ],
+  "customerType": 2,
+  "salesCustomer": "ABC company",
+  "regNumber": "TIN22998876",
+  "referenceNumber": "ABD88900",
+  "isIncludeInfrastructure": true,
+  "isIncludeAccommodation": true,
+  "isIncludeOtherService": true,
+  "isZraRegistered": false
+}
+```
+
+#### Example Response
+
+```json
+{
+  "salesCustomer": "ABC company",
+  "salesCurrency": "USD",
+  "bookingSalesItems": [
+    {
+      "itemsId": 2133,
+      "isTaxable": true,
+      "price": 40.0,
+      "quantity": 1.0,
+      "discount": 0.0
+    }
+  ],
+  "receiptAmount": 40.0,
+  "receiptNumber": "XHE234171",
+  "taxExclusive": 34.5,
+  "taxAmount": 5.18,
+  "issueDate": "05.05.2026 09:19:41",
+  "referenceNumber": "ABD88900-5940",
+  "regNumber": "TIN22998876",
+  "booking": {
+    "bookingId": 390,
+    "bookingCompany": "ABC company",
+    "bookingNumber": "0000R",
+    "amountLeft": 5000.0
+  }
+}
+```
+
+---
+
+### 2.10 Advance Payment Accommodation Endpoint
+
+This endpoint converts an advance booking into a reserved accommodation.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/accommodation/booking/`
+- **Header:** `vfms-request-type: ACCOMMODATION_BOOKING_REQUEST`
+
+#### Request Schema
+
+| Parameter              | Type        | Description                     |
+| ---------------------- | ----------- | ------------------------------- |
+| `referenceNumber`      | String      | Reservation transaction number. |
+| `roomId`               | String      | Room identifier.                |
+| `roomName`             | String      | Room name or number.            |
+| `accomodationPrice`    | Double      | Booking room price.             |
+| `accomodationDiscount` | Double      | Booking discount.               |
+| `salesCurrency`        | Enum        | `USD`, `TZS`, `EUR`.           |
+| `checkInDate`          | Date/String | Expected check-in date.         |
+| `checkOutDate`         | Date/String | Expected check-out date.        |
+| `bookingNumber`        | String      | Booking reference.              |
+| `receiptno`            | String      | Advance payment receipt number. |
+| `guest`                | Array       | Guest details.                  |
+| `guest[].documentNo`   | String      | Guest document number.          |
+| `guest[].documentName` | String      | Guest document type.            |
+| `guest[].country`      | String      | Guest country.                  |
+| `guest[].fullName`     | String      | Guest full name.                |
+
+#### Example Request
+
+```json
+{
+  "referenceNumber": "abc887",
+  "roomId": 99,
+  "accomodationPrice": 10,
+  "accomodationDiscount": 0,
+  "salesCurrency": "USD",
+  "checkInDate": "2026-05-05T09:23:55.068Z",
+  "checkOutDate": "2026-05-09T09:23:55.068Z",
+  "bookingNumber": "0000R",
+  "guest": [
+    {
+      "documentName": "NIDA",
+      "documentNo": "90060566554433",
+      "country": "TANZANIA",
+      "fullName": "SALIM ALI"
+    }
+  ]
+}
+```
+
+#### Example Response
+
+```json
+{
+  "issueDate": "05.05.2026 09:42:02",
+  "salesCurrency": "USD",
+  "salesCustomer": "SALIM ALI",
+  "accommodationPrice": 10.0,
+  "accommodationDiscount": 0.0,
+  "booking": {
+    "bookingId": 390,
+    "bookingCompany": "ABC company",
+    "bookingNumber": "0000R",
+    "amountLeft": 5000.0
+  },
+  "guest": [
+    {
+      "documentName": "NIDA",
+      "documentNo": "90060566554433",
+      "country": "TANZANIA",
+      "fullName": "SALIM ALI"
+    }
+  ],
+  "referenceNumber": "abc887-5940"
+}
+```
+
+---
+
+### 2.11 Hotel Services Endpoints
+
+This endpoint is used for guest service and extra service item registration.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/service/`
+- **Header:** `vfms-request-type: ACCOMMODATION_ADD_SERVICE`
+
+#### Request Schema
+
+| Parameter            | Type    | Description                                                         |
+| -------------------- | ------- | ------------------------------------------------------------------- |
+| `documentNumber`     | String  | Guest document ID.                                                  |
+| `service`            | Array   | Service line items.                                                 |
+| `service[].itemName` | String  | Service item name.                                                  |
+| `service[].price`    | Double  | Item price.                                                         |
+| `service[].quantity` | Integer | Quantity.                                                           |
+| `service[].discount` | Double  | Item discount.                                                      |
+| `type`               | String  | `CS` for checked-in services or `WS` for general customer services. |
+| `currency`           | Enum    | `USD`.                                                              |
+| `referenceNumber`    | String  | Unique transaction reference.                                       |
+
+#### Example Request
+
+```json
+{
+  "documentNumber": "AB003",
+  "service": [
+    {
+      "itemName": "WATER",
+      "price": 10,
+      "quantity": 2,
+      "discount": 0
+    }
+  ],
+  "referenceNumber": "RF006",
+  "type": "CS",
+  "currency": "USD"
+}
+```
+
+#### Example Response
+
+```json
+{
+  "documentNumber": "AB003",
+  "service": [
+    {
+      "itemName": "WATER",
+      "price": 10.0,
+      "quantity": 2.0,
+      "discount": 0.0
+    }
+  ],
+  "businessUnitId": 5940,
+  "referenceNumber": "RF006-5940",
+  "responseNumber": "8411373025940RF006-5940",
+  "recordedBy": 7804,
+  "recordedAt": "2025-05-30T14:37:30.146+03:00",
+  "tax": 2.6086956521739135,
+  "taxExclusive": 17.391304347826086,
+  "salesAmount": 20.0,
+  "receiptNumber": "XHE063509",
+  "type": "CR",
+  "currency": "USD"
+}
+```
+
+---
+
+### 2.12 Error Correction Endpoint
+
+This endpoint submits corrected invoice details for approval.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/error-management/new`
+- **Header:** `vfms-request-type: ERROR_SAVE`
+
+#### Request Schema
+
+| Parameter            | Type   | Description               |
+| -------------------- | ------ | ------------------------- |
+| `b_unit_name`        | String | Business name.            |
+| `email`              | String | Taxpayer email.           |
+| `new_receipt_number` | String | Corrected receipt number. |
+| `old_receipt_number` | String | Mistaken receipt number.  |
+| `phone_no`           | String | Taxpayer mobile number.   |
+| `reasons`            | String | Correction reason.        |
+| `unitId`             | Long   | Business unit identifier. |
+| `zrb_number`         | String | ZRA registration number.  |
+
+#### Example Request
+
+```json
+{
+  "b_unit_name": "string",
+  "email": "mshebanabil21@gmail.com",
+  "new_receipt_number": "NXM0152",
+  "old_receipt_number": "NXM0151",
+  "phone_no": "string",
+  "reasons": "TEST ERROR",
+  "unitId": 38,
+  "zrb_number": "Z025608121"
+}
+```
+
+#### Example Response
+
+```json
+{
+  "status": 200,
+  "statusMessage": "success",
+  "message": "Your application has been received, you will be notified once it has been processed."
+}
+```
+
+---
+
+### 2.13 Error Correction Report Endpoint
+
+This endpoint retrieves error correction report listings.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/error-management/errors/`
+- **Header:** `vfms-request-type: ERRORS_MANAGEMENTS`
+
+#### Request Schema
+
+| Parameter   | Type   | Description                                                                       |
+| ----------- | ------ | --------------------------------------------------------------------------------- |
+| `startDate` | String | Report start date.                                                                |
+| `endDate`   | String | Report end date.                                                                  |
+| `status`    | String | Status filter: `0` = Pending, `1` = Approved, `2` = Rejected, `3` = Verification. |
+| `unitId`    | Array  | Business unit filter list.                                                        |
+
+#### Example Request
+
+```json
+{
+  "startDate": "string",
+  "endDate": "string",
+  "status": "0",
+  "unitId": [{ "unitId": "0" }]
+}
+```
+
+#### Example Response
+
+```json
+{
+  "approved": 19,
+  "notVerified": 0,
+  "totalItems": 51,
+  "rejected": 10,
+  "errorList": [
+    {
+      "id_error_taxpayer": 66,
+      "old_receipt_number": "NXM0151",
+      "new_receipt_number": "NXM0152",
+      "reasons": "TEST ERROR",
+      "zrb_number": "Z025608121",
+      "b_unit_name": "RASHID HABIB ALI",
+      "unitId": 6845,
+      "status": "Pending",
+      "created_at": "2024-01-11T12:19:32.799+03:00",
+      "review_date": null,
+      "email": "mshebanabil21@gmail.com",
+      "phone_no": null
+    }
+  ]
+}
+```

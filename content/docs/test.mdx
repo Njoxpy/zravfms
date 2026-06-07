@@ -1,17 +1,22 @@
 ---
-title: Components
-description: Components
+title: Developer Notes
+description: Notes for developers working with the ZRA VFMS hotel API documentation.
 ---
 
-## Code Block
+# Developer Notes
 
-```js
-console.log('Hello World');
-```
+This documentation site is built using Next.js with MDX content stored in `content/docs`.
 
-## Cards
+## Editing Documentation
 
-<Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
-</Cards>
+- Update page content in `content/docs/*.mdx`.
+- Use frontmatter metadata to set page `title` and `description`.
+- The docs site is served under `/docs`.
+
+## Search Support
+
+Search is provided by `app/api/search/route.ts`.
+
+## Content Source
+
+The documentation source adapter is implemented in `lib/source.ts`, and page configuration is managed in `source.config.ts`.

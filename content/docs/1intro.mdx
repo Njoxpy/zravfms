@@ -1,0 +1,60 @@
+---
+title: Introduction
+description: VFMS hotel API integration overview and required request headers.
+---
+
+# Introduction
+
+## About VFMS
+
+The Zanzibar Revenue Authority (ZRA) Virtual Fiscal Management System (VFMS) enables hotel systems to issue, validate, and manage Fiscal Electronic Receipts (FERs) in real time.
+
+This documentation is intended for developers integrating hotel property management systems (PMS) with VFMS hotel endpoints.
+
+## Integration Overview
+
+Before sending any requests, the hotel business unit must be registered with VFMS.
+After registration, you will receive:
+
+- a **VFMS integration identifier**
+- a **VFMS authorization token**
+
+Both values are required in every API request.
+
+## Required Headers
+
+All VFMS hotel endpoint requests must use JSON and include the headers below.
+
+| Header Parameter       | Value / Type       | Required | Description |
+| ---------------------- | ------------------ | -------- | ----------- |
+| `Content-Type`         | `application/json` | Yes      | Required for all request payloads. |
+| `vfms-request-type`    | string             | Yes      | The action label for the endpoint, e.g. `ACCOMMODATION_REQUEST`. |
+| `vfms-integration-id`  | string             | Yes      | The registered VFMS integration identifier. |
+| `vfms-token-id`        | string             | Yes      | The authorization token issued by VFMS. |
+
+## Workflow
+
+1. Register your hotel business unit with VFMS.
+2. Receive your integration credentials.
+3. Send requests to the VFMS hotel API using the correct header values.
+4. Validate responses and store the returned receipt or response number for reporting.
+
+## 2. API Endpoints
+
+The hotel integration is built around 13 core endpoint operations. All endpoints use the HTTP `POST` method.
+
+- Accommodation
+- Room change
+- Room price change
+- Currency exchange rate
+- Accommodation reporting
+- Guest accommodation
+- Guest profile change
+- Guest checkout
+- Advance payment booking
+- Advance payment accommodation
+- Hotel services
+- Error correction
+- Error correction reporting
+
+For full endpoint details, use the **API Endpoints** page.
