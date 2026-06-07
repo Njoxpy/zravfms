@@ -3,6 +3,8 @@
 This repository hosts the Zanzibar Revenue Authority (ZRA) VFMS Hotel API documentation site.
 It is built with Next.js and a custom documentation source layer, with content authored in `content/docs`.
 
+> This project is not affiliated with ZRA or VFMS. It is an independent documentation example created to help people understand how the system works.
+
 ## Getting Started
 
 Install dependencies:

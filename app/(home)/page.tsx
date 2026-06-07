@@ -52,9 +52,13 @@ export default function HomePage() {
       </h1>
 
       {/* Subheading */}
-      <p className="text-fd-muted-foreground text-lg leading-relaxed mb-12">
+      <p className="text-fd-muted-foreground text-lg leading-relaxed mb-4">
         Official developer reference for the Zanzibar Revenue Authority's
-        Verified Fiscal Management System. 
+        Verified Fiscal Management System.
+      </p>
+      <p className="text-sm text-fd-muted-foreground leading-relaxed mb-12 rounded-xl border border-fd-border bg-fd-card p-4">
+        Note: This site is not affiliated with ZRA or VFMS. It is an independent
+        documentation example created to explain how the hotel integration works.
       </p>
 
       {/* Section cards */}
