@@ -1,0 +1,108 @@
+---
+title: Basic API Overview
+description: VFMS basic API integration overview, request headers, request types and endpoint list (Test Environment v1.5, April 2024).
+---
+
+The VFMS **Basic API** is the general-purpose integration for taxpayers in all tax types. Where the [Hotel API](/docs/1intro) covers accommodation, check-in and checkout, the Basic API covers day-to-day sales receipts: walk-in sales, business-to-business (B2B) sales, sales to government institutions, special relief sales, seaport ticketing and error correction.
+
+Your system calls a VFMS endpoint with the sale details. VFMS calculates the tax and returns the information you print on the receipt.
+
+<Callout type="info">
+  This page is based on the ZRA *Basic API Guide for VFMS, Test Environment, Version 1.5 (April 2024)*. It is an independent explanation, not an official ZRA publication.
+</Callout>
+
+## When to use the Basic API vs the Hotel API
+
+| Scenario | API |
+| --- | --- |
+| Guest check-in, room changes, services charged to a room, checkout | Hotel API |
+| Walk-in sales at a hotel shop, bar or restaurant not tied to a room | Basic API (normal sales) |
+| Sale to a ZRA-registered business | Basic API (B2B sales) |
+| Sale to a government institution or withholding agent | Basic API (institution sales) |
+| Customer holding a ZRA special relief number | Basic API (relief sales) |
+| Ferry/seaport passenger tickets | Basic API (seaport sales) |
+
+## Integration overview
+
+Your business unit must be registered in VFMS before you send any request. After registration, ZRA gives you an **integration ID** and a **token**. VFMS uses these to identify and authenticate your system, and you send them as headers on every request.
+
+## Request headers
+
+Every request carries four headers.
+
+| Header | Value |
+| --- | --- |
+| `Content-Type` | `application/json` |
+| `vfms-request-type` | Depends on the endpoint (see the table below) |
+| `vfms-intergration-id` | Integration ID issued by ZRA after registration |
+| `vfms-token-id` | Token issued by ZRA after registration |
+
+<Callout type="warn">
+  The Basic API guide spells the integration header `vfms-intergration-id` (with an extra "r"). The Hotel API docs use `vfms-integration-id`. Test against the environment to confirm which spelling your endpoint accepts.
+</Callout>
+
+## Endpoints and request types
+
+All endpoints use HTTP `POST`. Base URL for the test environment: `http://102.223.7.131:6060`.
+
+| Endpoint | Path | `vfms-request-type` |
+| --- | --- | --- |
+| [Normal sales](/docs/basic/sales#normal-sales) | `/vfms/api/sales/` | `NORMAL_SALES` |
+| [B2B sales](/docs/basic/sales#b2b-sales) | `/vfms/api/btob/sales/` | `BTOB_SALES` |
+| [Institution sales](/docs/basic/sales#institution-sales) | `/vfms/api/institution/sales/` | `WITHHOLDING_AGENT_SALES` |
+| [Check relief number](/docs/basic/relief#check-relief) | `/vfms/api/checkReliefSales/` | `RELIEF_SALES` |
+| [Save relief sales](/docs/basic/relief#save-relief-sales) | `/vfms/api/saveReliefSales/` | `RELIEF_SALES` |
+| [Get non-tax items](/docs/basic/relief#get-non-tax-items) | `/vfms/api/getNonTaxItems/` | `NON_TAX_ITEMS` |
+| [Seaport passenger sales](/docs/basic/seaport#seaport-sales) | `/vfms/api/seaport/sales/` | `SEAPORT_SALES` |
+| [Seaport foreigners charge](/docs/basic/seaport#seaport-foreign-charge) | `/vfms/api/seaport/foreign/` | `SEAPORT_FOREIGN_CHARGE` |
+| [New error correction](/docs/basic/error-correction#new-error-correction) | `/vfms/error-management/new` | `ERROR_SAVE` |
+| [List errors](/docs/basic/error-correction#error-correction-report) | `/vfms/error-management/errors/` | `ERRORS_MANAGEMENTS` |
+
+## Example request
+
+```bash
+curl -X POST http://102.223.7.131:6060/vfms/api/sales/ \
+  -H "Content-Type: application/json" \
+  -H "vfms-request-type: NORMAL_SALES" \
+  -H "vfms-intergration-id: 601850253" \
+  -H "vfms-token-id: e356de19-b1e6-47d9-82e0-eff7ad5fed5c" \
+  -d '{
+    "phoneNumber": "0772724747",
+    "referenceNumber": "ZRBT001",
+    "salesCurrency": "TZS",
+    "salesCustomer": "HAJI",
+    "salesItems": [
+      { "discount": 0, "itemId": 0, "itemName": "SABUNI", "price": 2000, "quantity": 2 }
+    ]
+  }'
+```
+
+## Test credentials
+
+These defaults are for the test environment only. Pick the set that matches the tax type of the endpoint you are testing.
+
+| Business unit tax type | Integration ID | Token |
+| --- | --- | --- |
+| VAT | `601850253` | `e356de19-b1e6-47d9-82e0-eff7ad5fed5c` |
+| Seaport | `821642133` | `93cae273-6fc8-4c4b-b950-2ea836a7c750` |
+| Stamp duty | `680831454` | `872688e6-bb28-4bf8-82f5-aebe787ea8ad` |
+
+<Callout type="warn">Never use test credentials in production.</Callout>
+
+## Rules that apply to every sales endpoint
+
+- **Taxable items:** set `itemId` to `0`.
+- **Non-taxable (exempt) items:** use the `id` and `name` returned by [Get non-tax items](/docs/basic/relief#get-non-tax-items).
+- **`referenceNumber`** must be unique for each transaction in your system.
+- **Receipts must carry a QR code** that encodes the ZRA receipt URL including the receipt number.
+
+## Field naming quirks
+
+Several response fields are misspelled in the API itself. Map them exactly as written; do not "correct" them in your parser.
+
+| Field as returned | Meaning |
+| --- | --- |
+| `receitpAmount` | Receipt amount (tax inclusive) |
+| `taxExclussive` | Amount excluding tax |
+| `endtDate` | Relief end date |
+| `amountRevield` | Amount relieved |

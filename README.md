@@ -39,6 +39,8 @@ The main docs pages are:
 - `content/docs/2.mdx` - endpoint reference and example requests.
 - `content/docs/3.mdx` - response codes and reporting requirements.
 - `content/docs/test.mdx` - developer notes and implementation guidance.
+- `content/docs/basic/` - VFMS Basic API (sales, B2B, institution, relief, seaport, error correction), based on `assets/VFMS_basicAPI_TESTV1.5 April 2024.pdf`.
+- `content/docs/meta.json` - sidebar order and section separators.
 
 ## Build
 

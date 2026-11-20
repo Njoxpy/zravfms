@@ -1,0 +1,169 @@
+---
+title: Seaport Endpoints
+description: Seaport passenger ticket sales and the foreign passenger charge in the VFMS basic API.
+---
+
+Two endpoints serve seaport ticketing agents. Test them with the **Seaport** test credentials (integration ID `821642133`).
+
+## Seaport sales
+
+Issues a fiscal receipt for passengers travelling locally (Unguja–Pemba) or to the mainland (Zanzibar–Dar es Salaam). VFMS calculates the total and tax, and returns the seaport charges (infrastructure, service charge, ZMA charge).
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/seaport/sales/`
+- **Header:** `vfms-request-type: SEAPORT_SALES`
+
+### Request fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `departureDate` | Date & time | Passenger departure date, ISO 8601. |
+| `itemType` | Enum | `LOCAL` or `FOREIGHN` (spelling as in the guide). |
+| `phoneNumber` | String | Passenger's mobile number. |
+| `referenceNumber` | String | Unique reference for this transaction. |
+| `salesCurrency` | Enum | `USD` or `TZS`. |
+| `salesCustomer` | String | Mandatory. The guide describes this as `LOCAL` or `MAINLAND`, but the sample response contains a passenger name. Confirm with ZRA. |
+| `salesItems` | Array | Ticket line items (below). |
+| `salesItems[].itemId` | String | Item ID. Sample uses `0`. |
+| `salesItems[].itemName` | String | Item name. |
+| `salesItems[].price` | Double | Ticket price. |
+| `salesItems[].quantity` | Double | Number of tickets. |
+| `salesItems[].discount` | Double | Discount amount. |
+| `ticketNumber` | String | Ticket number issued by your system. |
+
+### Request example
+
+```json
+{
+  "departureDate": "2024-04-03T09:40:07.873Z",
+  "itemType": "LOCAL",
+  "phoneNumber": "255776558890",
+  "referenceNumber": "22xx07",
+  "salesCurrency": "TZS",
+  "salesCustomer": "Asma",
+  "salesItems": [
+    {
+      "discount": 0,
+      "itemId": 0,
+      "itemName": "aaa",
+      "price": 25000,
+      "quantity": 2
+    }
+  ],
+  "ticketNumber": "AZ001"
+}
+```
+
+### Response fields
+
+All of the [sales response fields](/docs/basic/sales#sales-response-fields), plus:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `departureDate` | Date & time | Departure date, echoed back. |
+| `infrastructure` | Double | Infrastructure charge. |
+| `serviceCharge` | Double | Service charge. |
+| `zmaCharge` | Double | ZMA charge. |
+| `ticketNumber` | String | Your ticket number, echoed back. |
+
+### Response example
+
+```json
+{
+  "departureDate": "2024-04-03T09:40:07.873Z",
+  "salesCustomer": "Asma",
+  "customerPhone": "255776558890",
+  "salesCurrency": "TZS",
+  "salesItems": [
+    {
+      "itemId": 0,
+      "discount": 0.0,
+      "itemName": "aaa",
+      "price": 25000.0,
+      "quantity": 2.0
+    }
+  ],
+  "receitpAmount": 41000.0,
+  "receiptNumber": "PLV0123",
+  "taxExclussive": 37720.0,
+  "taxAmount": 3280.0,
+  "infrastructure": 4000.0,
+  "serviceCharge": 4000.0,
+  "zmaCharge": 1000.0,
+  "businessName": "RASHID HABIB ALI",
+  "tinNumber": "N/A",
+  "vrnNumber": "N/A",
+  "street": "MBUYU MNENE",
+  "issueDate": "2023-11-10T09:33:53.110+03:00",
+  "referenceNumber": "22xx07-7239",
+  "responseNumber": "280933515723922xx07-7239",
+  "getDailyTransaction": 18,
+  "getAllTransaction": 115,
+  "urn": "U16414068",
+  "type": "G",
+  "znumber": "Z025608121",
+  "ticketNumber": "AZ001"
+}
+```
+
+In this sample, 2 × 25,000 = 50,000 TZS gross; the receipt amount (41,000) plus infrastructure, service charge and ZMA charge (9,000) adds back to 50,000. VFMS appends your business unit ID to `referenceNumber` (`22xx07` → `22xx07-7239`).
+
+## Seaport foreign charge
+
+Charges foreign passengers travelling outside Tanzania. You send only the passenger count; VFMS calculates the charge.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/seaport/foreign/`
+- **Header:** `vfms-request-type: SEAPORT_FOREIGN_CHARGE`
+
+### Request fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `noPax` | Integer | Number of passengers travelling outside the country. |
+| `referenceNumber` | String | Unique reference for this transaction. |
+
+### Request example
+
+```json
+{
+  "noPax": 10,
+  "referenceNumber": "xxzyz"
+}
+```
+
+### Response
+
+Same shape as the seaport sales response, without `departureDate` and `ticketNumber`. `salesCustomer` is always `"Foreign Charge"`, `salesItems` is `null`, and the currency is `USD`.
+
+<Callout type="warn">
+  The response parameter table in the guide has its descriptions shifted by one row. Use the field names and the sample below as the reference, not that table's descriptions.
+</Callout>
+
+### Response example
+
+```json
+{
+  "salesCustomer": "Foreign Charge",
+  "customerPhone": "255",
+  "salesCurrency": "USD",
+  "salesItems": null,
+  "receitpAmount": 0.0,
+  "receiptNumber": "PLV095",
+  "taxExclussive": 0.0,
+  "taxAmount": 0.0,
+  "infrastructure": null,
+  "serviceCharge": null,
+  "zmaCharge": null,
+  "businessName": "RASHID HABIB ALI",
+  "tinNumber": "N/A",
+  "vrnNumber": "N/A",
+  "street": "MBUYU MNENE",
+  "issueDate": "2023-11-09T17:49:10.081+03:00",
+  "referenceNumber": "xxzyz-7239",
+  "responseNumber": "3117490977239xxzyz-7239",
+  "getDailyTransaction": 44,
+  "getAllTransaction": 87,
+  "urn": "U16414068",
+  "type": "G",
+  "znumber": "Z025608121"
+}
+```

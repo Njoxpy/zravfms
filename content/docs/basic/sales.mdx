@@ -1,0 +1,236 @@
+---
+title: Sales Endpoints
+description: Normal sales, B2B sales and institution (withholding agent) sales in the VFMS basic API.
+---
+
+Three endpoints issue standard sales receipts. They share the same item structure and response; they differ in who the customer is.
+
+| Endpoint | Customer | Identified by |
+| --- | --- | --- |
+| Normal sales | Walk-in customer | Name and phone number |
+| B2B sales | ZRA-registered business | Customer's ZRB number (`zrbnumber`) |
+| Institution sales | Government institution / withholding agent | Institution's ZRB number (`zrbnumber`) |
+
+In the request tables below, **M** means mandatory. The guide also uses **H** and **L** without defining them; treat `referenceNumber` (H) as required, and `discount` (L) as optional (send `0` when there is no discount).
+
+## Sales item fields
+
+Every sales request contains a `salesItems` array. Each item has:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `itemId` | long | | `0` for taxable items. For exempt items, the `id` from [Get non-tax items](/docs/basic/relief#get-non-tax-items). |
+| `itemName` | String | M | Item or service name. For exempt items, use the `name` from Get non-tax items. |
+| `price` | Double | M | Selling price per unit, tax inclusive. |
+| `quantity` | Double | M | Quantity sold. B2B and institution sales list this as Integer. |
+| `discount` | Double | L | Discount amount. |
+
+## Normal sales
+
+Use for walk-in customers and day-to-day sales. VFMS returns the calculated total and tax amount.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/sales/`
+- **Header:** `vfms-request-type: NORMAL_SALES`
+
+### Request fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `phoneNumber` | String | M | Customer's mobile number. |
+| `referenceNumber` | String | H | Unique reference for this transaction in your system. |
+| `salesCurrency` | Enum | M | `USD`, `TZS` or `EURO`. |
+| `salesCustomer` | String | M | Customer's name. |
+| `salesItems` | Array | M | See [Sales item fields](#sales-item-fields). |
+
+### Request example
+
+```json
+{
+  "phoneNumber": "0772724747",
+  "referenceNumber": "ZRBT001",
+  "salesCurrency": "TZS",
+  "salesCustomer": "HAJI",
+  "salesItems": [
+    {
+      "discount": 0,
+      "itemId": 0,
+      "itemName": "SABUNI",
+      "price": 2000,
+      "quantity": 2
+    }
+  ]
+}
+```
+
+### Response example
+
+```json
+{
+  "salesCustomer": "HAJI",
+  "customerPhone": "0772724747",
+  "salesCurrency": "TZS",
+  "salesItems": [
+    {
+      "itemId": 0,
+      "price": 2000.0,
+      "quantity": 2.0,
+      "discount": 0.0,
+      "itemName": "SABUNI"
+    }
+  ],
+  "receitpAmount": 4000.0,
+  "receiptNumber": "213590000076220812",
+  "taxExclussive": 3478.26,
+  "taxAmount": 521.74,
+  "businessName": "RASHID HABIB ALI",
+  "tinNumber": "N/A",
+  "vrnNumber": "N/A",
+  "street": "Mazizini",
+  "issueDate": "2022-08-12T15:14:16.197+03:00",
+  "referenceNumber": "ZRBT001",
+  "responseNumber": "441514155",
+  "getDailyTransaction": 3,
+  "getAllTransaction": 4068,
+  "urn": "U15303387",
+  "type": "B",
+  "znumber": "Z025608121"
+}
+```
+
+In this example, 4,000 TZS is tax inclusive: `taxExclussive` 3,478.26 + `taxAmount` 521.74 (15% VAT).
+
+## B2B sales
+
+Use for customers who are registered with ZRA. The customer must already be registered in ZRA systems and is identified by their ZRB number.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/btob/sales/`
+- **Header:** `vfms-request-type: BTOB_SALES`
+
+### Request fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `phoneNumber` | String | M | Customer's mobile number. |
+| `referenceNumber` | String | H | Unique reference for this transaction. |
+| `salesCurrency` | Enum | M | `USD`, `TZS` or `EURO`. |
+| `salesItems` | Array | M | See [Sales item fields](#sales-item-fields). |
+| `zrbnumber` | String | M | Customer's ZRB registration number. |
+
+There is no `salesCustomer` in the request. The response returns the ZRB number in `salesCustomer`.
+
+### Request example
+
+```json
+{
+  "phoneNumber": "0772525588",
+  "referenceNumber": "ZRBR002",
+  "salesCurrency": "TZS",
+  "salesItems": [
+    {
+      "discount": 0,
+      "itemId": 0,
+      "itemName": "NGUO",
+      "price": 10000,
+      "quantity": 1
+    }
+  ],
+  "zrbnumber": "Z0025383974"
+}
+```
+
+### Response example
+
+```json
+{
+  "salesCustomer": "Z0025383974",
+  "customerPhone": "0772525588",
+  "salesCurrency": "TZS",
+  "salesItems": [
+    {
+      "itemId": 0,
+      "price": 10000.0,
+      "quantity": 1.0,
+      "discount": 0.0,
+      "itemName": "NGUO"
+    }
+  ],
+  "receitpAmount": 10000.0,
+  "receiptNumber": "213590000077220812",
+  "taxExclussive": 8695.65,
+  "taxAmount": 1304.35,
+  "businessName": "RASHID HABIB ALI",
+  "tinNumber": "N/A",
+  "vrnNumber": "N/A",
+  "street": "Mazizini",
+  "issueDate": "2022-08-12T16:28:29.170+03:00",
+  "referenceNumber": "ZRBR002",
+  "responseNumber": "641628285",
+  "getDailyTransaction": 4,
+  "getAllTransaction": 4069,
+  "urn": "U15303387",
+  "type": "B",
+  "znumber": "Z025608121"
+}
+```
+
+## Institution sales
+
+Use for government institutions and withholding agents (WA). The institution provides its ZRB number at purchase. VFMS calculates the tax-exclusive amount to be paid and the tax withheld.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/institution/sales/`
+- **Header:** `vfms-request-type: WITHHOLDING_AGENT_SALES`
+
+### Request fields
+
+Same as [B2B sales](#b2b-sales), except `zrbnumber` is the **government institution's** ZRB number.
+
+### Request example
+
+```json
+{
+  "phoneNumber": "0772525588",
+  "referenceNumber": "ZRBR002",
+  "salesCurrency": "TZS",
+  "salesItems": [
+    {
+      "discount": 0,
+      "itemId": 0,
+      "itemName": "NGUO",
+      "price": 10000,
+      "quantity": 1
+    }
+  ],
+  "zrbnumber": "Z0255796947"
+}
+```
+
+### Response
+
+The response has the same fields as B2B sales. The guide reuses the B2B sample response here, so test against the environment to confirm how withheld tax is reported.
+
+## Sales response fields
+
+All three endpoints return these fields.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `salesCustomer` | String | Customer name (normal sales) or customer ZRB number (B2B, institution). |
+| `customerPhone` | String | Customer's mobile number. |
+| `salesCurrency` | Enum | `USD`, `TZS` or `EURO`. |
+| `salesItems` | Array | Echo of the items: `itemId`, `itemName`, `price`, `quantity`, `discount`. |
+| `receitpAmount` | Double | Total receipt amount, tax inclusive. |
+| `receiptNumber` | String | Receipt number generated by VFMS. Use this in the QR code. |
+| `taxAmount` | Double | Calculated tax. |
+| `taxExclussive` | Double | Amount excluding tax. |
+| `businessName` | String | Your business unit name. |
+| `tinNumber` | String | Your TIN. |
+| `vrnNumber` | String | Your VAT registration number. |
+| `street` | String | Business location. |
+| `issueDate` | Date & time | Receipt issue date and time (ISO 8601). |
+| `referenceNumber` | String | Your transaction reference, echoed back. |
+| `responseNumber` | String | VFMS response number. |
+| `getDailyTransaction` | Integer | Daily counter: transactions today for this unit. |
+| `getAllTransaction` | Integer | Overall counter: all transactions for this unit. |
+| `urn` | String | Business unit registration number. |
+| `type` | String | Tax type. |
+| `znumber` | String | Your ZRB registration number. |

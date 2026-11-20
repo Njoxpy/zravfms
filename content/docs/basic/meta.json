@@ -1,0 +1,6 @@
+{
+  "title": "Basic API",
+  "description": "VFMS basic integration for sales, relief, seaport and error correction.",
+  "defaultOpen": true,
+  "pages": ["index", "sales", "relief", "seaport", "error-correction", "response-codes"]
+}

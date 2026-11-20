@@ -1,0 +1,27 @@
+---
+title: Response Codes and Receipt Rules
+description: VFMS basic API response codes and receipt requirements.
+---
+
+## Response codes
+
+| Code | Message | Meaning |
+| --- | --- | --- |
+| `200` | Operation successful | The request succeeded and VFMS returned a response. |
+| `201` | Created | The record was created but VFMS returned no response body. |
+| `400` | Bad request | The payload has incorrect or missing data. |
+| `401` | Unauthorized | The token is missing or invalid. |
+| `403` | Forbidden | The user or process was rejected. |
+| `404` | Not Found | Nothing matched the search criteria (for example, an unknown relief number). |
+| `500` | Internal Service Error | VFMS had a server-side error. |
+
+## Receipt requirements
+
+- Every printed receipt must include a **QR code** that encodes the ZRA receipt URL with the `receiptNumber` in it.
+- Print the details VFMS returns: business name, TIN, VRN, ZRB number, street, receipt number, issue date, items, tax-exclusive amount, tax amount and total.
+- Store `receiptNumber` and `responseNumber` with the transaction. You need the receipt number for [error correction](/docs/basic/error-correction).
+
+## Item rules
+
+- Taxable items: `itemId` = `0`.
+- Exempt items: `itemId` and `itemName` must come from [Get non-tax items](/docs/basic/relief#get-non-tax-items).

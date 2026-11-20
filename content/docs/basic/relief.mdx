@@ -1,0 +1,219 @@
+---
+title: Relief and Non-tax Items
+description: Verify special relief numbers, issue relief sales receipts and list non-taxable items in the VFMS basic API.
+---
+
+## Special relief flow
+
+Some groups of people and projects are granted special tax relief by ZRA and receive a **special relief number**. Issuing a relief receipt takes two calls:
+
+1. **[Check relief](#check-relief)** with the customer's relief number. VFMS confirms it is valid and returns a `reliefId` plus the relieved items and amounts.
+2. **[Save relief sales](#save-relief-sales)** with that `reliefId`. VFMS issues the receipt.
+
+Both calls use `vfms-request-type: RELIEF_SALES`. Check that `isValid` is `true` before calling save.
+
+## Check relief
+
+Verifies a special relief number and returns its details.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/checkReliefSales/`
+- **Header:** `vfms-request-type: RELIEF_SALES`
+
+### Request fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `reliefnumber` | String | The customer's special relief number issued by ZRA. Note the lowercase `n`. |
+
+### Request example
+
+```json
+{
+  "reliefnumber": "22081303"
+}
+```
+
+### Response fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `reliefId` | long | Relief ID. **Send this to Save relief sales.** |
+| `reliefNumber` | String | The relief number. |
+| `customer` | String | Customer's business name. |
+| `phoneNumber` | String | Customer's phone number. |
+| `amountRevield` | Double | Amount relieved. |
+| `startDate` | Date & time | Relief start date. |
+| `endtDate` | Date & time | Relief end date. |
+| `issueDate` | Date & time | Relief issue date. |
+| `isValid` | boolean | Whether the relief is currently valid. |
+| `businessUnit` | long | Business unit ID. |
+| `totalAmount` | Double | Total amount. |
+| `totalAmountToPay` | Double | Total amount the customer pays. |
+| `totalTaxPaid` | Double | Total tax paid. |
+| `totalTaxRelieved` | Double | Total tax relieved. |
+| `items` | Array | Relieved items (below). |
+| `items[].reliefItemId` | long | Relief item ID. |
+| `items[].itemId` | long | Item ID. |
+| `items[].itemDescription` | String | Item name. |
+| `items[].itemQuantity` | Double | Quantity. |
+| `items[].itemAmount` | Double | Item amount. |
+| `items[].taxPaid` | Double | Tax paid on the item. |
+| `items[].taxRelieved` | Double | Tax relieved on the item. |
+| `currency` | Enum | `USD`, `TZS` or `EURO`. |
+
+### Response example
+
+```json
+{
+  "reliefId": 1352,
+  "reliefNumber": "22081303",
+  "customer": "AAAA",
+  "phoneNumber": "255772724747",
+  "amountRevield": 100.0,
+  "startDate": "2022-08-15T00:00:00.000+03:00",
+  "endtDate": "2022-09-15T00:00:00.000+03:00",
+  "issueDate": "2022-08-15T18:47:06.501+03:00",
+  "isValid": true,
+  "businessUnit": 38,
+  "totalAmount": 200000.0,
+  "totalAmountToPay": 173913.04,
+  "totalTaxPaid": 0.0,
+  "totalTaxRelieved": 26086.96,
+  "items": [
+    {
+      "reliefItemId": 1352,
+      "itemId": 664,
+      "itemDescription": "BLADESS",
+      "itemQuantity": 2.0,
+      "itemAmount": 200000.0,
+      "taxPaid": 0.0,
+      "taxRelieved": 26086.96
+    }
+  ],
+  "currency": "TZS"
+}
+```
+
+## Save relief sales
+
+Issues the relief sales receipt for a validated relief.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/saveReliefSales/`
+- **Header:** `vfms-request-type: RELIEF_SALES`
+
+### Request fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `reliefId` | long | The `reliefId` returned by [Check relief](#check-relief). |
+
+### Request example
+
+```json
+{
+  "reliefId": 1352
+}
+```
+
+### Response fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `salesCustomer` | String | Customer's name. |
+| `customerPhone` | String | Customer's phone number. |
+| `salesCurrency` | Enum | `USD`, `TZS` or `EURO`. |
+| `salesItems[].items_id` | long | Item ID. |
+| `salesItems[].stock_id` | long | Stock ID (may be `null`). |
+| `salesItems[].description` | String | Item name. |
+| `salesItems[].quantity` | Double | Quantity. |
+| `salesItems[].price` | Double | Item price. |
+| `salesItems[].discount` | Double | Discount (may be `null`). |
+| `receitpAmount` | Double | Total amount to be paid. |
+| `receiptNumber` | String | Generated receipt number. |
+| `taxExclussive` | Double | Total tax-exclusive amount. |
+| `taxAmount` | Double | Total tax to be paid. |
+| `taxType` | String | Registered tax type. |
+| `businessName` | String | Business unit name. |
+| `streetName` | String | Business location. |
+| `vrnNumber` | String | Your VRN. |
+| `tinNumber` | String | Your TIN. |
+| `issueDate` | String | Issue date and time, format `dd.MM.yyyy HH:mm:ss`. |
+| `regNumber` | String | Registration number (may be `null`). |
+| `fee` | Double | Fee. |
+| `znumber` | String | Your ZRB number. |
+
+<Callout type="warn">
+  This response differs from the normal sales response: items use `items_id` and `description` instead of `itemId` and `itemName`, the location field is `streetName` not `street`, and `issueDate` is `dd.MM.yyyy HH:mm:ss` rather than ISO 8601.
+</Callout>
+
+### Response example
+
+```json
+{
+  "salesCustomer": "AAAA",
+  "customerPhone": "255772724747",
+  "salesCurrency": "TZS",
+  "salesItems": [
+    {
+      "items_id": 664,
+      "stock_id": null,
+      "description": "BLADESS",
+      "quantity": 2.0,
+      "price": 100000.0,
+      "discount": null
+    }
+  ],
+  "receitpAmount": 173913.04,
+  "receiptNumber": "105750010275220816",
+  "taxExclussive": 173913.04,
+  "taxAmount": 0.0,
+  "taxType": "A",
+  "businessName": null,
+  "streetName": "MBUYU MNENE",
+  "vrnNumber": null,
+  "tinNumber": "N/A",
+  "issueDate": "16.08.2022 10:04:07",
+  "regNumber": null,
+  "fee": 0.0,
+  "znumber": "Z025608121"
+}
+```
+
+## Get non-tax items
+
+Lists the non-taxable (exempt) items defined by tax law. Use the returned `id` and `name` as `itemId` and `itemName` when you sell an exempt item through any sales endpoint. This endpoint takes no request body.
+
+- **Endpoint:** `POST http://102.223.7.131:6060/vfms/api/getNonTaxItems/`
+- **Header:** `vfms-request-type: NON_TAX_ITEMS`
+
+### Response fields
+
+The response is an array of items.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | long | Item ID. Use as `itemId` in sales requests. |
+| `unitMeasure` | String | Unit of measure. |
+| `isTaxable` | boolean | `false` for exempt items. |
+| `name` | String | Item name. Use as `itemName` in sales requests. |
+
+### Response example
+
+```json
+[
+  {
+    "id": 219,
+    "unitMeasure": "No",
+    "isTaxable": false,
+    "name": "SEAFOOD"
+  },
+  {
+    "id": 216,
+    "unitMeasure": "No",
+    "isTaxable": false,
+    "name": "RICE"
+  }
+]
+```
+
+Cache this list in your system and refresh it periodically rather than calling it on every sale.
